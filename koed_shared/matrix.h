@@ -5,19 +5,9 @@
 #include <numeric>
 #include <stdexcept>
 #include <vector>
+#include "matrix_alg.h"
 
 namespace koed_shared {
-
-template <class C>
-double mean_of_values(C c) {
-  return mean_of_values(begin, end);
-}
-
-template <class I>
-double mean_of_values(I begin, I end) {
-  auto sum = std::accumulate(begin, end, 0.0);
-  return sum / std::distance(begin, end);
-}
 
 struct MatrixRow final : std::vector<double> {
   MatrixRow(const std::initializer_list<double>& list)
@@ -67,6 +57,9 @@ struct MatrixColumn final {
   std::vector<double*> data;
 };
 
+inline MatrixColumn::iterator begin(MatrixColumn& m) { return m.begin(); }
+inline MatrixColumn::iterator end(MatrixColumn& m) { return m.end(); }
+
 struct Matrix final : std::vector<MatrixRow> {
   Matrix(std::initializer_list<std::initializer_list<double>> list)
       : std::vector<MatrixRow>(list.begin(), list.end()) {
@@ -86,6 +79,10 @@ struct Matrix final : std::vector<MatrixRow> {
   }
 
   static Matrix BuildIdentity(size_t n);
+
+  Matrix BuildStandardizedMatrix();
+  Matrix BuildCovarianceMatrix();
+  Matrix BuildCorrelationMatrix();
 
   // Sizes
   size_t size_of_column() { return size(); }
