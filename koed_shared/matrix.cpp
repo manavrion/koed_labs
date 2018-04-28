@@ -53,3 +53,23 @@ Matrix Matrix::BuildCorrelationMatrix() {
   }
   return move(r);
 }
+
+// Stream
+istream& koed_shared::operator>>(istream& in, Matrix& matrix) {
+  for (auto& row : matrix) {
+    for (auto& val : row) {
+      in >> val;
+    }
+  }
+  return in;
+}
+ostream& koed_shared::operator<<(ostream& out, Matrix& matrix) {
+  for (auto& row : matrix) {
+    for (auto& val : row) {
+      out << val;
+      if (&val != &row.back()) out << "\t";
+    }
+    if (&row != &matrix.back()) out << endl;
+  }
+  return out;
+}

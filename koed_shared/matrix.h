@@ -1,8 +1,10 @@
 #pragma once
 #include <algorithm>
 #include <initializer_list>
+#include <istream>
 #include <iterator>
 #include <numeric>
+#include <ostream>
 #include <stdexcept>
 #include <vector>
 #include "matrix_alg.h"
@@ -10,6 +12,7 @@
 namespace koed_shared {
 
 struct MatrixRow final : std::vector<double> {
+  MatrixRow(const std::vector<double>& list) : std::vector<double>(list) {}
   MatrixRow(const std::initializer_list<double>& list)
       : std::vector<double>(list) {}
   MatrixRow(size_t m) : std::vector<double>(m) {}
@@ -61,6 +64,16 @@ inline MatrixColumn::iterator begin(MatrixColumn& m) { return m.begin(); }
 inline MatrixColumn::iterator end(MatrixColumn& m) { return m.end(); }
 
 struct Matrix final : std::vector<MatrixRow> {
+  Matrix(std::vector<std::vector<double>> list)
+      : std::vector<MatrixRow>(list.begin(), list.end()) {
+    size_t size = 0;
+    for (auto& l : list) {
+      size = std::max(size, l.size());
+    }
+    for (auto& ob : *this) {
+      ob.resize(size);
+    }
+  }
   Matrix(std::initializer_list<std::initializer_list<double>> list)
       : std::vector<MatrixRow>(list.begin(), list.end()) {
     size_t size = 0;
@@ -100,5 +113,8 @@ struct Matrix final : std::vector<MatrixRow> {
     return MatrixColumn(columns);
   }
 };
+
+std::istream& operator>>(std::istream& in, Matrix& matrix);
+std::ostream& operator<<(std::ostream& out, Matrix& matrix);
 
 }  // namespace koed_shared
