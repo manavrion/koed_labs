@@ -13,6 +13,6 @@ add_executable(koed_lab_1 ${SOURCES})
 # Link koed_shared
 target_link_libraries(koed_lab_1 koed_shared)
 
-# Copy resource
+# Copy resources
 FILE(COPY "../resources/table.txt" DESTINATION "${CMAKE_BINARY_DIR}/koed_lab_1")
 FILE(COPY "../resources/student_table.txt" DESTINATION "${CMAKE_BINARY_DIR}/koed_lab_1")

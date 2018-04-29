@@ -11,17 +11,25 @@
 
 namespace koed_shared {
 
+struct Matrix;
+
+struct MatrixMultException : public std::exception {};
+struct MatrixSumException : public std::exception {};
+
+struct MatrixRectBroken : public std::exception {};
+
 struct MatrixRow final : std::vector<double> {
   MatrixRow(const std::vector<double>& list) : std::vector<double>(list) {}
   MatrixRow(const std::initializer_list<double>& list)
       : std::vector<double>(list) {}
-  MatrixRow(size_t m) : std::vector<double>(m) {}
+  MatrixRow(size_t m, double def = 0) : std::vector<double>(m, def) {}
   double operator[](size_t i) const throw(std::out_of_range) { return at(i); }
   double& operator[](size_t i) throw(std::out_of_range) { return at(i); }
 };
 
 struct MatrixColumn final {
-  MatrixColumn(std::vector<double*> data) : data(std::move(data)) {}
+  MatrixColumn(std::vector<double*> data, Matrix* owner)
+      : data(std::move(data)), owner(owner) {}
   double operator[](size_t i) const throw(std::out_of_range) {
     return *data.at(i);
   }
@@ -56,8 +64,13 @@ struct MatrixColumn final {
   iterator begin() { return MatrixColumn::iterator(data.begin()); }
   iterator end() { return MatrixColumn::iterator(data.end()); }
 
+  void push_back(double val);
+
+  double& back() { return *data.back(); }
+
  private:
   std::vector<double*> data;
+  Matrix* owner;
 };
 
 inline MatrixColumn::iterator begin(MatrixColumn& m) { return m.begin(); }
@@ -98,10 +111,10 @@ struct Matrix final : std::vector<MatrixRow> {
   Matrix BuildCorrelationMatrix();
 
   // Sizes
-  size_t size_of_column() { return size(); }
-  size_t size_of_row() { return (size() == 0 ? 0 : front().size()); }
-  size_t size_n() { return size(); }
-  size_t size_m() { return (size() == 0 ? 0 : front().size()); }
+  size_t size_of_column() const { return size(); }  // BAD, TODO fix
+  size_t size_of_row() const { return (size() == 0 ? 0 : front().size()); }
+  size_t size_n() const { return size(); }
+  size_t size_m() const { return (size() == 0 ? 0 : front().size()); }
 
   // Getters
   MatrixRow& GetRow(size_t i) throw(std::out_of_range) { return at(i); }
@@ -110,9 +123,72 @@ struct Matrix final : std::vector<MatrixRow> {
     for (size_t i = 0; i < size_n(); i++) {
       columns.push_back(&(*this)[i][j]);
     }
-    return MatrixColumn(columns);
+    return MatrixColumn(columns, this);
+  }
+
+  MatrixColumn AsVector() throw(std::out_of_range) { return GetColumn(0); }
+
+  // Math
+  Matrix BuildTransposeMatrix() const;
+
+  Matrix operator-() const {
+    Matrix m = (*this);
+    for (size_t i = 0; i < size_n(); i++) {
+      for (size_t j = 0; j < size_m(); j++) {
+        m[i][j] *= -1;
+      }
+    }
+    return move(m);
+  }
+
+  bool IsIdentity(double eps) const {
+    for (size_t i = 0; i < size_n(); i++) {
+      for (size_t j = 0; j < size_m(); j++) {
+        if (i == j) {
+          if (abs(1 - (*this)[i][j]) > eps) return false;
+        } else {
+          if (abs((*this)[i][j]) > eps) return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  bool IsZero(double eps) const {
+    for (size_t i = 0; i < size_n(); i++) {
+      for (size_t j = 0; j < size_m(); j++) {
+        if (abs((*this)[i][j]) > eps) return false;
+      }
+    }
+    return true;
+  }
+
+  bool Equals(const Matrix& b, double eps) const {
+    const Matrix& a = (*this);
+    if (a.size_n() != b.size_n() || a.size_m() != b.size_m()) return false;
+    for (size_t i = 0; i < a.size_n(); i++) {
+      for (size_t j = 0; j < a.size_m(); j++) {
+        if (abs(a[i][j] - b[i][j]) > eps) return false;
+      }
+    }
+    return true;
+  }
+
+  // TODO
+  void push_back_column(double val) {
+    for (auto& row : (*this)) {
+      row.push_back(val);
+    }
   }
 };
+
+Matrix operator*(const Matrix& a, const Matrix& b) throw(MatrixMultException);
+Matrix operator+(const Matrix& a, const Matrix& b) throw(MatrixSumException);
+Matrix operator-(const Matrix& a, const Matrix& b) throw(MatrixSumException);
+
+bool operator==(const Matrix& a, const Matrix& b);
+
+Matrix mpow(const Matrix& a, int p) throw(MatrixMultException);
 
 std::istream& operator>>(std::istream& in, Matrix& matrix);
 std::ostream& operator<<(std::ostream& out, Matrix& matrix);
