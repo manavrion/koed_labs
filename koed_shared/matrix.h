@@ -64,6 +64,39 @@ struct MatrixColumn final {
   iterator begin() { return MatrixColumn::iterator(data.begin()); }
   iterator end() { return MatrixColumn::iterator(data.end()); }
 
+  class reverse_iterator
+      : public std::iterator<
+            std::forward_iterator_tag,              // iterator_category
+            double,                                 // value_type
+            std::vector<double*>::difference_type,  // difference_type
+            double*,                                // pointer
+            double&                                 // reference
+            > {
+    std::vector<double*>::reverse_iterator it;
+
+   public:
+    explicit reverse_iterator(std::vector<double*>::reverse_iterator it)
+        : it(it) {}
+    reverse_iterator& operator++() {
+      it++;
+      return *this;
+    }
+    reverse_iterator operator++(int) {
+      reverse_iterator retval = *this;
+      ++(*this);
+      return retval;
+    }
+    bool operator==(reverse_iterator other) const { return it == other.it; }
+    bool operator!=(reverse_iterator other) const { return !(*this == other); }
+    reference operator*() const { return *(*it); }
+  };
+  reverse_iterator rbegin() {
+    return MatrixColumn::reverse_iterator(data.rbegin());
+  }
+  reverse_iterator rend() {
+    return MatrixColumn::reverse_iterator(data.rend());
+  }
+
   void push_back(double val);
 
   double& back() { return *data.back(); }
