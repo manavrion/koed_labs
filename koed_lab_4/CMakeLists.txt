@@ -2,7 +2,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Add SOURCES variable
-set(SOURCES main.cpp)
+set(SOURCES data_set.cpp main.cpp)
 
 # Add include from koed_shared
 include_directories("../koed_shared")
