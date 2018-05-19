@@ -18,5 +18,6 @@ add_executable(koed_lab_5 ${SOURCES})
 # Link koed_shared
 target_link_libraries(koed_lab_5 koed_shared)
 
-# Copy resource
+# Copy resources
 FILE(COPY "../resources/lab5_table.txt" DESTINATION "${CMAKE_BINARY_DIR}/koed_lab_5")
+FILE(COPY "../resources/lab5_painter.exe" DESTINATION "${CMAKE_BINARY_DIR}/koed_lab_5")
